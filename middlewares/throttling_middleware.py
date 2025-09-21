@@ -45,6 +45,6 @@ class ThrottlingMiddleware(BaseMiddleware):
         # Добавляем текущий timestamp
         await self.redis.zadd(key, {current: current})
         # Устанавливаем TTL для автоматического удаления
-        await self.redis.expire(key, self.tm + 10)
+        await self.redis.expire(key, self.tm)
 
         return await handler(event, data)

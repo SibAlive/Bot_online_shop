@@ -38,11 +38,20 @@ class RedisSettings:
 
 
 @dataclass
+class WebhookSettings:
+    host: str
+    port: int
+    base_url: str
+    path: str
+
+
+@dataclass
 class Config:
     bot: TgBot
     db: DatabaseSettings
     redis: RedisSettings
     log: LoggSettings
+    webhook: WebhookSettings
 
 
 def load_config(path: str | None = None) -> Config:
@@ -83,6 +92,13 @@ def load_config(path: str | None = None) -> Config:
         username=env("REDIS_USERNAME", default=""),
     )
 
+    webhook = WebhookSettings(
+        host=env.str("WEBHOOK_HOST", "0.0.0.0"),
+        port=env.int("PORT", 8000),
+        base_url=env("WEBHOOK_BASE_URL"),
+        path=env.str("WEBHOOK_PATH", "/webhook"),
+    )
+
     logg_settings = LoggSettings(
         level=env("LOG_LEVEL"),
         format=env("LOG_FORMAT"),
@@ -95,4 +111,5 @@ def load_config(path: str | None = None) -> Config:
         db=db,
         redis=redis,
         log=logg_settings,
+        webhook=webhook
     )
