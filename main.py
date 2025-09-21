@@ -397,7 +397,7 @@ async def on_shutdown(bot: Bot) -> None:
     if hasattr(bot, "_redis"):
         await bot._redis.close()
         logger.info("Redis closed")
-    await engine.disconnect()
+    await engine.dispose()
     logger.info("Connection to Redis and PostgreSQL closed")
 
 
