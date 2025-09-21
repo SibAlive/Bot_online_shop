@@ -369,8 +369,39 @@ from lexicon.i18n import get_translations
 logger = logging.getLogger(__name__)
 
 
+async def on_startup(bot: Bot, config: Config) -> None:
+    """Устанавливаем webhook при запуске"""
+    webhook_url = config.webhook.base_url + config.webhook.path
+
+    # Устанавливаем webhook в Telegram
+    try:
+        await bot.set_webhook(
+            url=webhook_url,
+            drop_pending_updates=True,  # Очищаем старые обновления при запуске
+        )
+        logger.info(f"Webhook set to: {webhook_url}")
+    except Exception as e:
+        logger.exception("Failed to set webhook")
+        raise e
+
+
+async def on_shutdown(bot: Bot) -> None:
+    """Очищаем ресурсы при остановке"""
+    await bot.delete_webhook(drop_pending_updates=True)
+    logger.info("Webhook deleted")
+
+    # Закрываем соединения
+    await bot.session.close()
+    if hasattr(bot, "_redis"):
+        await bot._redis.close()
+        logger.info("Redis closed")
+    await engine.disconnect()
+    logger.info("Connection to Redis and PostgreSQL closed")
+
+
+
 # Функция конфигурирования и запуск бота
-async def main() -> None:
+def create_app() -> web.Application:
     # Загружаем конфиг в переменную конфиг
     config: Config = load_config()
 
@@ -416,6 +447,10 @@ async def main() -> None:
     dp.message.middleware(DeleteLastMessageMiddleware())
     dp.message.middleware(ThrottlingMiddleware(redis, limit=1, tm=1))
 
+    # Регистрируем события жизненного цикла
+    dp.startup.register(lambda: on_startup(bot, config))
+    dp.shutdown.register(lambda: on_shutdown(bot))
+
     # Создаем объект aiohttp приложения
     app = web.Application()
 
@@ -432,42 +467,9 @@ async def main() -> None:
     # Подключаем диспетчер к приложению (для graceful shutdown и т.п.)
     setup_application(app, dp, bot=bot)
 
-    webhook_url = config.webhook.base_url + config.webhook.path
+    logger.info("Application created successfully")
+    return app
 
-    # Устанавливаем webhook в Telegram
-    try:
-        await bot.set_webhook(
-            url=webhook_url,
-            drop_pending_updates=True,  # Очищаем старые обновления при запуске
-        )
-        logger.info(f"Webhook set to: {webhook_url}")
-    except Exception as e:
-        logger.exception("Failed to set webhook")
-        raise e
-
-    # Запускаем веб-сервер
-    web.run_app(
-        app,
-        host=config.webhook.host,
-        port=config.webhook.port,
-    )
-
-    # Ждем завершения (бот работает, пока не прервут Ctrl+C)
-    try:
-        await asyncio.Event().wait()    # Бесконечное ожидание
-    except (KeyboardInterrupt, SystemExit):
-        logger.info("Shutting down...")
-
-    finally:
-        # Удаляем webhook при завершении
-        await bot.delete_webhook(drop_pending_updates=True)
-        logger.info("Webhook deleted")
-
-        # Закрываем соединения
-        await bot.session.close()
-        await redis.close()
-        await engine.dispose()
-        logger.info("Connection to Redis and PostgreSQL closed")
 
 
 # Политика цикла событий для Windows
@@ -475,5 +477,4 @@ if sys.platform.startswith("win") or os.name == "nt":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
-if __name__ == "__main__":
-    asyncio.run(main())
+app = create_app()
