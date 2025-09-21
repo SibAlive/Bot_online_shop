@@ -366,14 +366,24 @@ from middlewares.throttling_middleware import ThrottlingMiddleware
 from lexicon.i18n import get_translations
 
 
+
+
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
 
 
-async def on_startup(bot: Bot, config: Config) -> None:
+async def on_startup(bot: Bot, config: Config, redis: Redis) -> None:
     """Устанавливаем webhook при запуске"""
     webhook_url = config.webhook.base_url + config.webhook.path
     logger.info(f"Attempting to set webhook to: {webhook_url}")
+
+    # Проверка подключения к Redis
+    try:
+        await redis.ping()
+        logger.info("Successfully connected to Redis")
+    except Exception as e:
+        logger.error(f"Failed to connect to Redis: {e}")
+        raise e
 
     # Устанавливаем webhook в Telegram
     try:
@@ -450,7 +460,7 @@ def create_app() -> web.Application:
     dp.message.middleware(ThrottlingMiddleware(redis, limit=1, tm=1))
 
     # Регистрируем события жизненного цикла
-    dp.startup.register(partial(on_startup, bot, config))
+    dp.startup.register(partial(on_startup, bot, config, redis))
     dp.shutdown.register(on_shutdown)
 
     # Создаем объект aiohttp приложения
