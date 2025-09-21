@@ -31,11 +31,10 @@ class DatabaseSettings:
 @dataclass
 class RedisSettings:
     host: str
-    # port: int
-    # db: int
-    # password: str
-    # username: str
-    token: str
+    port: int
+    db: int
+    password: str
+    username: str
 
 
 @dataclass
@@ -87,11 +86,10 @@ def load_config(path: str | None = None) -> Config:
 
     redis = RedisSettings(
         host=env("REDIS_HOST"),
-        # port=env("REDIS_PORT"),
-        # db=env.int("REDIS_DATABASE"),
-        # password=env("REDIS_PASSWORD", default=""),
-        # username=env("REDIS_USERNAME", default=""),
-        token=env("REDIS_TOKEN")
+        port=env.int("REDIS_PORT"),
+        db=env.int("REDIS_DATABASE"),
+        password=env("REDIS_PASSWORD", default=""),
+        username=env("REDIS_USERNAME", default=""),
     )
 
     webhook = WebhookSettings(

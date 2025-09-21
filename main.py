@@ -418,11 +418,10 @@ def create_app() -> web.Application:
     # Инициализируем хранилище
     redis = Redis(
             host=config.redis.host,
-            # port=config.redis.port,
-            # db=config.redis.db,
-            # password=config.redis.password,
-            # username=config.redis.username,
-            token=config.redis.token,
+            port=config.redis.port,
+            db=config.redis.db,
+            username=config.redis.username,
+            password=config.redis.password,
         )
     storage = RedisStorage(redis)
 
