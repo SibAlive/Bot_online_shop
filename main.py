@@ -373,6 +373,7 @@ logger = logging.getLogger(__name__)
 async def on_startup(bot: Bot, config: Config) -> None:
     """Устанавливаем webhook при запуске"""
     webhook_url = config.webhook.base_url + config.webhook.path
+    logger.info(f"Attempting to set webhook to: {webhook_url}")
 
     # Устанавливаем webhook в Telegram
     try:
