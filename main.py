@@ -341,6 +341,7 @@ import sys
 import os
 import asyncio
 import logging
+from functools import partial
 from aiogram import Bot, Dispatcher
 from aiogram.client.default import DefaultBotProperties
 from aiogram.enums import ParseMode
@@ -448,8 +449,8 @@ def create_app() -> web.Application:
     dp.message.middleware(ThrottlingMiddleware(redis, limit=1, tm=1))
 
     # Регистрируем события жизненного цикла
-    dp.startup.register(lambda: on_startup(bot, config))
-    dp.shutdown.register(lambda: on_shutdown(bot))
+    dp.startup.register(partial(on_startup, bot, config))
+    dp.shutdown.register(on_shutdown)
 
     # Создаем объект aiohttp приложения
     app = web.Application()
@@ -466,6 +467,12 @@ def create_app() -> web.Application:
 
     # Подключаем диспетчер к приложению (для graceful shutdown и т.п.)
     setup_application(app, dp, bot=bot)
+
+    # Health check endpoint для Render
+    async def health_check(request):
+        return web.Response(text="OK", status=200)
+    app.router.add_get("/", health_check)
+    app.router.add_get("/health", health_check)
 
     logger.info("Application created successfully")
     return app
