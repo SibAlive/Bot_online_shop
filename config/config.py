@@ -79,7 +79,7 @@ def load_config(path: str | None = None) -> Config:
     db = DatabaseSettings(
         name=env("POSTGRES_DB"),
         host=env("POSTGRES_HOST"),
-        port=env.int("POSTGRES_PORT"),
+        port=env.int("POSTGRES_PORT", 5432),
         user=env("POSTGRES_USER"),
         password=env("POSTGRES_PASSWORD"),
     )
