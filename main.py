@@ -8,6 +8,7 @@
 # from aiogram.enums import ParseMode
 # from aiogram.fsm.storage.redis import RedisStorage
 # from redis.asyncio import Redis
+# # from upstash_redis import Redis
 #
 # from config.config import Config, load_config
 # from services.connections import AsyncSessionLocal, engine
@@ -44,13 +45,39 @@
 #
 #     # Инициализируем хранилище
 #     redis = Redis(
-#             host=config.redis.host,
-#             port=config.redis.port,
-#             db=config.redis.db,
-#             password=config.redis.password,
-#             username=config.redis.username,
+#             host="red-d38mporipnbc738asqs0",
+#             port=6379,
+#             db=0,
+#             # db=config.redis.db,
+#             password="",
+#             username="default",
 #         )
+#     # redis = Redis(url="https://guiding-gorilla-7579.upstash.io", token="AR2bAAImcDI1ZDE4MmMzZGI1MzE0YjU5YWM0ZTM1ZDU3NjIzNTM3NHAyNzU3OQ")
+#     # redis = Redis.from_url(
+#     #     "rediss://default:AR2bAAImcDI1ZDE4MmMzZGI1MzE0YjU5YWM0ZTM1ZDU3NjIzNTM3NHAyNzU3OQ@guiding-gorilla-7579.upstash.io:6379",
+#     #     socket_connect_timeout=15,
+#     #     socket_timeout=15,
+#     #     socket_keepalive=True,
+#     #     retry_on_timeout=True,
+#     #     ssl_cert_reqs=None
+#     # )
 #     storage = RedisStorage(redis)
+#
+#
+#
+#     # https://guiding-gorilla-7579.upstash.io
+#
+#     try:
+#         # Отправляем команду PING
+#         pong = await redis.ping()
+#         logger.info(f"Connection successful! PONG: {pong}")
+#
+#         # Пример: запись и чтение ключа
+#         # await redis.set("test_key", "Hello from Python!")
+#         # value = await redis.get("test_key")
+#         # logger.info(f"Retrieved value: {value}")
+#     except Exception as e:
+#         logger.info(f"Connection failed: {e}")
 #
 #     # Инициализируем бот и диспетчер
 #     bot = Bot(
@@ -427,11 +454,12 @@ def create_app() -> web.Application:
 
     # Инициализируем хранилище
     redis = Redis(
-            host=config.redis.host,
-            port=config.redis.port,
-            db=config.redis.db,
-            username=config.redis.username,
-            password=config.redis.password,
+            host="red-d38mporipnbc738asqs0",
+            port=6379,
+            db=0,
+            # db=config.redis.db,
+            password="",
+            username="default",
         )
     storage = RedisStorage(redis)
 
