@@ -408,7 +408,6 @@ async def on_shutdown(bot: Bot) -> None:
     logger.info("Connection to Redis and PostgreSQL closed")
 
 
-
 # Функция конфигурирования и запуск бота
 def create_app() -> web.Application:
     # Загружаем конфиг в переменную конфиг
@@ -423,15 +422,15 @@ def create_app() -> web.Application:
     logger.info("Starting bot...")
 
     # Инициализируем хранилище
-    # redis = Redis(
-    #     host=config.redis.host,
-    #     port=config.redis.port,
-    #     db=config.redis.db,
-    #     password=config.redis.password,
-    #     username=config.redis.username,
-    # )
-    redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.db}"
-    redis = Redis.from_url(redis_url)
+    redis = Redis(
+        host=config.redis.host,
+        port=config.redis.port,
+        db=config.redis.db,
+        password=config.redis.password,
+        username=config.redis.username,
+    )
+    # redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.db}"
+    # redis = Redis.from_url(redis_url)
     storage = RedisStorage(redis)
 
     # Инициализируем бот и диспетчер
