@@ -338,6 +338,7 @@ from aiogram.fsm.storage.redis import RedisStorage
 from aiogram.webhook.aiohttp_server import SimpleRequestHandler, setup_application
 from aiohttp import web
 from redis.asyncio import Redis
+from sqlalchemy import text
 
 from config.config import Config, load_config
 from services.connections import AsyncSessionLocal, engine
@@ -355,8 +356,6 @@ from middlewares.throttling_middleware import ThrottlingMiddleware
 from lexicon.i18n import get_translations
 
 
-
-
 # Инициализируем логгер
 logger = logging.getLogger(__name__)
 
@@ -372,6 +371,15 @@ async def on_startup(bot: Bot, config: Config, redis: Redis) -> None:
         logger.info("Successfully connected to Redis")
     except Exception as e:
         logger.error(f"Failed to connect to Redis: {e}")
+        raise e
+
+    # Проверка PostgreSQL
+    try:
+        async with engine.begin() as conn:
+            await conn.execute(text("SELECT 1"))
+        logger.info("Successfully connected to PostgreSQL")
+    except Exception as e:
+        logger.error(f"Failed to connect to PostgreSQL: {e}")
         raise e
 
     # Устанавливаем webhook в Telegram
@@ -415,13 +423,15 @@ def create_app() -> web.Application:
     logger.info("Starting bot...")
 
     # Инициализируем хранилище
-    redis = Redis(
-        host=config.redis.host,
-        port=config.redis.port,
-        db=config.redis.db,
-        password=config.redis.password,
-        username=config.redis.username,
-    )
+    # redis = Redis(
+    #     host=config.redis.host,
+    #     port=config.redis.port,
+    #     db=config.redis.db,
+    #     password=config.redis.password,
+    #     username=config.redis.username,
+    # )
+    redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.db}"
+    redis = Redis.from_url(redis_url)
     storage = RedisStorage(redis)
 
     # Инициализируем бот и диспетчер
