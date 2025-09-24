@@ -9,7 +9,6 @@ config: Config = load_config()
 
 logger = logging.getLogger(__name__)
 
-logger.info("1")
 DATABASE_URL = (
     f"postgresql+asyncpg://"
     f"{config.db.user}:{config.db.password}@"
@@ -29,11 +28,9 @@ engine = create_async_engine(
     future=True,       # Использовать новые фичи SQLAlchemy 2.0+
 )
 
-logger.info("2")
 # Создаём фабрику сессий
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
     expire_on_commit=False,  # Не закрывать объекты после коммита
 )
-logger.info("3")

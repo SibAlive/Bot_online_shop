@@ -465,13 +465,17 @@ def create_app() -> web.Application:
     app = web.Application()
 
     # Создаем обработчик запросов от Telegram
-    webhook_handler = SimpleRequestHandler(
-        dispatcher=dp,
-        bot=bot,
-        translations=translations,
-        session=AsyncSessionLocal,
-        admin_ids=config.bot.admin_ids,
-    )
+    try:
+        webhook_handler = SimpleRequestHandler(
+            dispatcher=dp,
+            bot=bot,
+            translations=translations,
+            session=AsyncSessionLocal,
+            admin_ids=config.bot.admin_ids,
+        )
+    except Exception as e:
+        logger.exception(f"Failed to dispatch webhook: {e}")
+        raise e
     webhook_handler.register(app, path=config.webhook.path)
 
     # Подключаем диспетчер к приложению (для graceful shutdown и т.п.)
