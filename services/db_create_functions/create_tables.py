@@ -3,9 +3,9 @@ import logging
 import os
 import sys
 
-from online_shop.config.config import Config, load_config
+from config.config import Config, load_config
 from online_shop.models.models import Base
-from online_shop.services.connections import engine
+from services.connections import engine
 
 # Загрузка конфига
 config: Config = load_config()

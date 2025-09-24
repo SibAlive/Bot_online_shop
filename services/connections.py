@@ -21,7 +21,6 @@ DATABASE_URL_FOR_FLASK = (
     f"{config.db.host}:{config.db.port}/{config.db.name}"
 )
 
-
 # Создаём асинхронный движок SQLAlchemy
 engine = create_async_engine(
     DATABASE_URL,

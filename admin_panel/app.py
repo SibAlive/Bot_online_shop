@@ -1,7 +1,7 @@
 from flask import Flask
 import os
 
-from .extensions import db
+from extensions import db
 from routers import (index, categories, new_category,edit_category,
                      delete_category, products, new_product, edit_product,
                      delete_product)
@@ -33,9 +33,5 @@ def create_app():
     app.add_url_rule('/product/new', 'new_product', new_product, methods=['GET', 'POST'])
     app.add_url_rule('/product/edit/<int:id>', 'edit_product', edit_product, methods=['GET', 'POST'])
     app.add_url_rule('/product/delete/<int:id>', 'delete_product', delete_product, methods=['POST'])
-
-    # Создаем таблицы, если их нет
-    with app.app_context():
-        db.create_all()
 
     return app
