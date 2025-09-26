@@ -395,9 +395,12 @@ async def on_startup(bot: Bot, config: Config, redis: Redis) -> None:
 
 
 async def on_shutdown(bot: Bot) -> None:
-    """Очищаем ресурсы при остановке"""
-    await bot.delete_webhook(drop_pending_updates=True)
-    logger.info("Webhook deleted")
+    """Удаляем вебхук только если не на Render"""
+    if not os.getenv("RENDER"):
+        await bot.delete_webhook(drop_pending_updates=True)
+        logger.info("Webhook deleted")
+    else:
+        logger.info("Skipping webhook deletion on Render")
 
     # Закрываем соединения
     await bot.session.close()
