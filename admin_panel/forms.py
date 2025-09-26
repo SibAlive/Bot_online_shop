@@ -21,8 +21,8 @@ class ProductForm(FlaskForm):
 
     def __init__(self, *args, **kwargs):
         super(ProductForm, self).__init__(*args, **kwargs)
-        from online_shop.models.models import Category
-        from online_shop.admin_panel.extensions import db
+        from models import Category
+        from .extensions import db
         # Заполняем SelectField категориями из БД
         self.category_id.choices = [(0, 'Без категории')] + [
             (c.id, c.name) for c in db.session.query(Category).filter_by(is_active=True).all()

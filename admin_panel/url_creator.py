@@ -3,6 +3,7 @@ from environs import Env
 
 
 env = Env()
+env.read_env()
 
 db_name=env("POSTGRES_DB")
 db_host=env("POSTGRES_HOST")
@@ -15,3 +16,6 @@ DATABASE_URL_FOR_FLASK = (
     f"{db_user}:{db_password}@"
     f"{db_host}:{db_port}/{db_name}"
 )
+
+ADMIN_USERNAME = env("ADMIN_USERNAME", 'admin')
+ADMIN_PASSWORD = env("ADMIN_PASSWORD", 'password')
