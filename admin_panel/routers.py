@@ -1,8 +1,8 @@
 """Маршруты для управления категориями и товарами"""
 from flask import redirect, url_for, render_template, flash, request
 
-from extensions import db
-from forms import CategoryForm, ProductForm
+from .extensions import db
+from .forms import CategoryForm, ProductForm
 from models import Category, Product
 
 

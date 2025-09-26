@@ -1,8 +1,8 @@
 """Данный модуль необходим для запуска админ панели на удаленном сервере"""
 # Чтобы запустить админ панель через терминал, необходимо ввести:
-# waitress-serve --host=0.0.0.0 --port=5000 "online_shop.admin_panel.wsgi:application"
+# waitress-serve --host=localhost --port=5000 "admin_panel.wsgi:application"
 
-from app import create_app
+from .app import create_app
 
 
 # Создаем приложение

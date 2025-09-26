@@ -1,8 +1,8 @@
 from flask import Flask
 import os
 
-from extensions import db
-from routers import (index, categories, new_category,edit_category,
+from .extensions import db
+from .routers import (index, categories, new_category,edit_category,
                      delete_category, products, new_product, edit_product,
                      delete_product)
 from services import DATABASE_URL_FOR_FLASK

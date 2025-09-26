@@ -496,7 +496,6 @@ def create_app() -> web.Application:
 if sys.platform.startswith("win") or os.name == "nt":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
-
 app = create_app()
 
 if __name__ == "__main__":
