@@ -429,8 +429,6 @@ def create_app() -> web.Application:
         password=config.redis.password,
         username=config.redis.username,
     )
-    # redis_url = f"redis://{config.redis.username}:{config.redis.password}@{config.redis.host}:{config.redis.port}/{config.redis.db}"
-    # redis = Redis.from_url(redis_url)
     storage = RedisStorage(redis)
 
     # Инициализируем бот и диспетчер
