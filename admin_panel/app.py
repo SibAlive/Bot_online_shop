@@ -5,9 +5,10 @@ from .extensions import db
 from .routers import (index, categories, new_category,edit_category,
                      delete_category, products, new_product, edit_product,
                      delete_product)
-# from services import DATABASE_URL_FOR_FLASK
+from .url_creator import DATABASE_URL_FOR_FLASK
 
-DATABASE_URL_FOR_FLASK = "postgresql+psycopg2://telegram_bot_db_0j6l_user:Z70SR9LVguYWTAnW7qxSBkmwEXvdQMZp@dpg-d38n1n3uibrs739veulg-a:5432/telegram_bot_db_0j6l"
+# DATABASE_URL_FOR_FLASK = "postgresql+psycopg2://telegram_bot_db_0j6l_user:Z70SR9LVguYWTAnW7qxSBkmwEXvdQMZp@dpg-d38n1n3uibrs739veulg-a:5432/telegram_bot_db_0j6l"
+
 
 def create_app():
     app = Flask(__name__)
