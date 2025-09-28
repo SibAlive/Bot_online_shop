@@ -55,7 +55,7 @@ class IsCorrectNameMessage(BaseFilter):
 class IsCorrectNumberMessage(BaseFilter):
     async def __call__(self, message: Message) -> bool | dict[str, str]:
         phone = message.text.strip()
-        if phone.isdigit() and len(phone) == 11:
+        if phone.isdigit() and phone.startswith('8') and len(phone) == 11:
             return {'phone': phone}
         return False
 

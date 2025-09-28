@@ -9,16 +9,19 @@ from admin_panel import db
 
 # Модель пользователя
 class User(db.Model):
-    __tablename__ = "online_shop_users"
+    __tablename__ = "users"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     user_id = Column(BigInteger, unique=True, nullable=False, index=True)
     username = Column(String(50), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     language = Column(String(10), nullable=False)
-    role = Column(ENUM(UserRole, name="user_rolw_enum"), nullable=False)
+    role = Column(ENUM(UserRole, name="user_role_enum"), nullable=False)
     is_alive = Column(Boolean, nullable=False)
     banned = Column(Boolean, nullable=False)
+    name = Column(String(30), nullable=True)
+    phone = Column(String(11), nullable=True)
+    address = Column(String(50), nullable=True)
 
     # Связь с корзиной
     cart_items = relationship("CartItem", back_populates="user", cascade="all, delete-orphan")
@@ -31,7 +34,7 @@ class CartItem(db.Model):
     __tablename__ = "cart_items"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
-    user_id = Column(BigInteger, ForeignKey("online_shop_users.user_id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id = Column(BigInteger, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False, index=True)
     product_id = Column(Integer, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
     quantity = Column(Integer, nullable=False, default=1)
     added_at = Column(DateTime(timezone=True), server_default=func.now())

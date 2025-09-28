@@ -37,7 +37,7 @@ class UserService:
         await self.session.commit()
 
         logger.info(
-            f"User added. Table='online_shop_users', user_id={user_id}, "
+            f"User added. Table='users', user_id={user_id}, "
             f"created_at={datetime.now(timezone.utc)}, language={language}, "
             f"role={role}, is_alive={is_alive}, banned={banned}"
         )
@@ -183,6 +183,35 @@ class UserService:
         logger.info(f"Updated 'banned' status to {banned} for username {username}")
 
 
+    async def write_user_name_phone_address(
+            self,
+            *,
+            user_id: int,
+            name: str,
+            phone: int,
+            address: str,
+    ) -> None:
+        """Вносит в БД имя, телефон и адрес пользователя"""
+        await self.session.execute(
+            update(User).where(User.user_id == user_id).values(name=name, phone=phone, address=address)
+        )
+        await self.session.commit()
+        logger.info(f"Updated name {name}, phone {phone}, address {address} for user {user_id}")
+
+
+    async def get_user_name_phone_address(self, *, user_id: int) -> list[dict]:
+        """Проверяет, есть ли в БД имя, телефон и адрес пользователя"""
+        result = await self.session.execute(
+            select(User.name, User.phone, User.address)
+            .where(User.user_id == user_id)
+        )
+
+        return [
+            {"name": row[0], "phone": row[1], "address": row[2]}
+            for row in result.all()
+        ]
+
+
 class ProductService:
     def __init__(self, session: AsyncSession):
         self.session = session
@@ -195,11 +224,6 @@ class ProductService:
         )
         return list(result.scalars().all())
 
-    # async def get_category_by_id(self, category_id: int):
-    #     result = await self.session.execute(
-    #         select(Category).where(Category.id == category_id)
-    #     )
-    #     return result.scalar_one_or_none()
 
     # === Товары ===
     async def get_products_by_category(self, category_id: int) -> list[Product]:
@@ -216,13 +240,6 @@ class ProductService:
             select(Product).where(Product.id == product_id)
         )
         return result.scalar_one_or_none()
-
-    # async def search_products(self, query: str) -> list[Product]:
-    #     result = await self.session.execute(
-    #         select(Product)
-    #         .where(Product.name.ilike(f"%{query}%"), Product.is_available == True)
-    #     )
-    #     return list(result.scalars().all())
 
 
 class CartService:

@@ -79,21 +79,28 @@ async def create_text_order(i18n: dict, products: list[dict]) -> tuple | str:
     if text:
         result_1 = i18n.get("your_order_total").format(total).replace(',', ' ')
         result_2 = text
-        result_3 = i18n.get('write_name')
-        return result_1, result_2, result_3
+        # result_3 = i18n.get('write_name')
+        return result_1, result_2
 
     text = i18n.get("order_cart_empty")
     return text
 
 
 # Функция, формирующая текст подтверждения ввода данных
-def get_confirm_text(data: dict[str, str], i18n: dict) -> str:
-    name = data.get('name')
-    phone = data.get('phone')
-    address = data.get('address')
-
+def get_confirm_text(data: dict, i18n: dict) -> str:
+    name = data.get("name")
+    phone = data.get("phone")
+    address = data.get("address")
     result = i18n.get("confirm_text").format(name, phone, address)
+    return result
 
+
+async def get_confirm_text_from_db(user_service, user_id: int, i18n: dict) -> str:
+    user_data = await user_service.get_user_name_phone_address(user_id=user_id)
+    name = user_data[0].get("name")
+    phone = user_data[0].get("phone")
+    address = user_data[0].get("address")
+    result = i18n.get("confirm_text").format(name, phone, address)
     return result
 
 
