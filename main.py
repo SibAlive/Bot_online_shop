@@ -9,20 +9,13 @@
 # from aiogram.fsm.storage.redis import RedisStorage
 # from redis.asyncio import Redis
 #
-# from config.config import Config, load_config
-# from services.connections import AsyncSessionLocal, engine
-# from handlers.settings import settings_router
-# from handlers.admin import admin_router
-# from handlers.user import user_router
-# from handlers.other import other_router
-# from middlewares.database_middleware import DataBaseMiddleware
-# from middlewares.shadow_ban import ShadowBanMiddleware
-# from middlewares.check_reg import UserRegistrationMiddleware
-# from middlewares.delete_msg import DeleteLastMessageMiddleware
-# from middlewares.i18n_middleware import TranslatorMiddleware
-# from middlewares.lang_settings import LangSettingsMiddleware
-# from middlewares.throttling_middleware import ThrottlingMiddleware
+# from config import Config, load_config
+# from services import AsyncSessionLocal, engine
 # from lexicon.i18n import get_translations
+# from handlers import settings_router, admin_router, user_router, other_router
+# from middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
+#                          DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
+#                          ThrottlingMiddleware)
 #
 #
 # # Инициализируем логгер
@@ -119,20 +112,13 @@
 # from aiohttp import web
 # from redis.asyncio import Redis
 #
-# from config.config import Config, load_config
-# from services.connections import AsyncSessionLocal, engine
-# from handlers.settings import settings_router
-# from handlers.admin import admin_router
-# from handlers.user import user_router
-# from handlers.other import other_router
-# from middlewares.database_middleware import DataBaseMiddleware
-# from middlewares.shadow_ban import ShadowBanMiddleware
-# from middlewares.check_reg import UserRegistrationMiddleware
-# from middlewares.delete_msg import DeleteLastMessageMiddleware
-# from middlewares.i18n_middleware import TranslatorMiddleware
-# from middlewares.lang_settings import LangSettingsMiddleware
-# from middlewares.throttling_middleware import ThrottlingMiddleware
+# from config import Config, load_config
+# from services import AsyncSessionLocal, engine
 # from lexicon.i18n import get_translations
+# from handlers import settings_router, admin_router, user_router, other_router
+# from middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
+#                          DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
+#                          ThrottlingMiddleware)
 #
 #
 # # Инициализируем логгер
@@ -340,20 +326,13 @@ from aiohttp import web
 from redis.asyncio import Redis
 from sqlalchemy import text
 
-from config.config import Config, load_config
-from services.connections import AsyncSessionLocal, engine
-from handlers.settings import settings_router
-from handlers.admin import admin_router
-from handlers.user import user_router
-from handlers.other import other_router
-from middlewares.database_middleware import DataBaseMiddleware
-from middlewares.shadow_ban import ShadowBanMiddleware
-from middlewares.check_reg import UserRegistrationMiddleware
-from middlewares.delete_msg import DeleteLastMessageMiddleware
-from middlewares.i18n_middleware import TranslatorMiddleware
-from middlewares.lang_settings import LangSettingsMiddleware
-from middlewares.throttling_middleware import ThrottlingMiddleware
+from config import Config, load_config
+from services import AsyncSessionLocal, engine
 from lexicon.i18n import get_translations
+from handlers import settings_router, admin_router, user_router, other_router
+from middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
+                         DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
+                         ThrottlingMiddleware)
 
 
 # Инициализируем логгер

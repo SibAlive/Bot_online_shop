@@ -1,0 +1,7 @@
+from .check_reg import UserRegistrationMiddleware
+from .database_middleware import DataBaseMiddleware
+from .delete_msg import DeleteLastMessageMiddleware
+from .i18n_middleware import TranslatorMiddleware
+from .lang_settings import LangSettingsMiddleware
+from .shadow_ban import ShadowBanMiddleware
+from .throttling_middleware import ThrottlingMiddleware

@@ -1,6 +1,6 @@
 import asyncio
-from services.connections import AsyncSessionLocal
-from models.models import Category, Product
+from services import AsyncSessionLocal
+from models import Category, Product
 
 async def seed_data():
     async with AsyncSessionLocal() as session:
