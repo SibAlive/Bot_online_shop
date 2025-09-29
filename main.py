@@ -386,7 +386,7 @@ async def on_startup(bot: Bot, config: Config, redis: Redis) -> None:
     try:
         await bot.set_webhook(
             url=webhook_url,
-            drop_pending_updates=True,  # Очищаем старые обновления при запуске
+            drop_pending_updates=False,  # Очищаем старые обновления при запуске
         )
         logger.info(f"Webhook set to: {webhook_url}")
     except Exception as e:
