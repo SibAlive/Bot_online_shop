@@ -44,6 +44,14 @@ class IsDelItemCallbackData(BaseFilter):
         return False
 
 
+class IsAnyCategoryCallbackData(BaseFilter):
+    async def __call__(self, callback: CallbackQuery) -> bool | dict[str, int]:
+        if callback.data.startswith("category_"):
+            category_id = int(callback.data.split('_')[1])
+            return {'category_id': category_id}
+        return False
+
+
 class IsCorrectNameMessage(BaseFilter):
     async def __call__(self, message: Message) -> bool | dict[str, str]:
         name = message.text.strip()

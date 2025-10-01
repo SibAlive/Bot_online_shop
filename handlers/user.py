@@ -18,7 +18,7 @@ from keyboards import (create_keyboard_categories, create_keyboard_bottom,
                        create_main_keyboard, create_main_menu_commands)
 from filters import (IsDelItemCallbackData, IsCorrectNameMessage, IsCorrectNumberMessage,
                      ButtonCartFilter, ButtonContactsFilter, ButtonOrderFilter,
-                     ButtonCategoryFilter)
+                     ButtonCategoryFilter, IsAnyCategoryCallbackData)
 from FSM import OrderForm
 
 logger = logging.getLogger(__name__)
@@ -198,14 +198,15 @@ async def process_button_contacts(message: Message, i18n: dict, state: FSMContex
     logger.debug(f"Выходим из хэндлера контакты")
 
 # Этот хэндлер будет срабатывать на нажатие любой из категории
-@user_router.callback_query(F.data.startswith("category_"), StateFilter(default_state))
+@user_router.callback_query(IsAnyCategoryCallbackData(), StateFilter(default_state))
 async def process_products_choice(
         callback: CallbackQuery,
         session:AsyncSession,
         i18n: dict,
-        state: FSMContext):
+        state: FSMContext,
+        category_id: int
+):
     logger.debug("Входим в хэндлер нажатие любой из категории")
-    category_id = int(callback.data.split("_")[1])
 
     product_service = ProductService(session)
     # Получаем список товаров из выбранной категории
@@ -225,7 +226,7 @@ async def process_products_choice(
 
     # Формируем количество товаров в корзине (нижняя кнопка)
     text = await get_keyboard_bottom_text(product.id, i18n, session, user_id=callback.from_user.id)
-    sent = await callback.message.edit_media(
+    await callback.message.edit_media(
         media=InputMediaPhoto(
             media=product.photo_url,
             caption=caption,
@@ -233,8 +234,42 @@ async def process_products_choice(
         reply_markup=await create_keyboard_bottom(i18n=i18n, text=text)
     )
 
-    await state.update_data(message_ids=[sent.message_id])
     logger.debug("Выходим из хэндлера нажатие любой из категории")
+
+
+# Нажатие инлайн кнопки назад, находясь в любой из категорий
+@user_router.callback_query(F.data == 'back_to_categories', StateFilter(default_state))
+async def process_back__inline_press(
+        callback: CallbackQuery,
+        bot: Bot,
+        session: AsyncSession,
+        i18n: dict,
+        state: FSMContext,
+):
+    logger.debug("Входим в хэндлер 'back_to_categories'")
+
+    # Удаляем предыдущее сообщение
+    data = await state.get_data()
+    message_ids = data.get('message_ids', [])
+    for message_id in message_ids:
+        try:
+            await bot.delete_message(
+                chat_id=callback.message.chat.id,
+                message_id=message_id
+            )
+        except TelegramBadRequest:
+            pass
+
+    product_service = ProductService(session)
+    categories = await product_service.get_all_categories()
+
+    sent = await callback.message.answer(
+        text=i18n.get('category'),
+        reply_markup=create_keyboard_categories(categories)
+    )
+    await state.update_data(message_ids=[sent.message_id])
+    logger.debug("Выходим из хэндлера 'back_to_categories'")
+
 
 # Этот хэндлер будет срабатывать на нажатие кнопок next и prev
 @user_router.callback_query(F.data.in_(('next', 'prev')), StateFilter(default_state))

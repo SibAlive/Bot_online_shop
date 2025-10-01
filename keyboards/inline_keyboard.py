@@ -56,7 +56,8 @@ async def create_keyboard_bottom(i18n: dict, text: str):
         inline_keyboard=[
             [InlineKeyboardButton(text=i18n.get('prev'), callback_data='prev'),
              InlineKeyboardButton(text=i18n.get('next'), callback_data='next')],
-            [InlineKeyboardButton(text=text, callback_data='add_to_cart')]
+            [InlineKeyboardButton(text=text, callback_data='add_to_cart')],
+            [InlineKeyboardButton(text=i18n.get('back_to_categories'), callback_data='back_to_categories')],
         ]
     )
     return inline_keyboard_bottom
