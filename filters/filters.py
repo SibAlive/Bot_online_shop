@@ -26,11 +26,6 @@ class ButtonCategoryFilter(BaseFilter):
         return message.text == i18n.get('button_category')
 
 
-class ButtonOrderFilter(BaseFilter):
-    async def __call__(self, message: Message, i18n: dict):
-        return message.text == i18n.get('button_order')
-
-
 class ButtonContactsFilter(BaseFilter):
     async def __call__(self, message: Message, i18n: dict):
         return message.text == i18n.get('button_contacts')
@@ -63,7 +58,7 @@ class IsCorrectNameMessage(BaseFilter):
 class IsCorrectNumberMessage(BaseFilter):
     async def __call__(self, message: Message) -> bool | dict[str, str]:
         phone = message.text.strip()
-        if phone.isdigit() and phone.startswith('8') and len(phone) == 11:
+        if phone.isdigit() and phone.startswith('7') and len(phone) == 11:
             return {'phone': phone}
         return False
 

@@ -5,21 +5,24 @@ from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import default_state
 from aiogram.types import (Message, CallbackQuery, InputMediaPhoto,
-                           ChatMemberUpdated, BotCommandScopeChat)
+                           ChatMemberUpdated, BotCommandScopeChat, Contact, ReplyKeyboardRemove)
 from aiogram.filters import CommandStart, Command, StateFilter, ChatMemberUpdatedFilter, KICKED
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from services import (ProductService, UserService, CartService, index_increase,
                       index_decrease, create_text_order, convert_total,
                       get_confirm_text, get_caption, get_keyboard_bottom_text,
-                      get_confirm_text_from_db)
+                      get_confirm_text_from_db, delete_prev_messages,
+                      get_thanks_for_order_text, create_cart_goods)
 from keyboards import (create_keyboard_categories, create_keyboard_bottom,
                        create_keyboard_confirm, create_keyboard_cart,
-                       create_main_keyboard, create_main_menu_commands)
+                       create_main_keyboard, create_main_menu_commands,
+                       create_phone_keyboard, create_keyboard_edit_cart)
 from filters import (IsDelItemCallbackData, IsCorrectNameMessage, IsCorrectNumberMessage,
-                     ButtonCartFilter, ButtonContactsFilter, ButtonOrderFilter,
+                     ButtonCartFilter, ButtonContactsFilter,
                      ButtonCategoryFilter, IsAnyCategoryCallbackData)
 from FSM import OrderForm
+
 
 logger = logging.getLogger(__name__)
 
@@ -58,18 +61,23 @@ async def process_start_command(
 # Этот хэндлер будет срабатывать на команду /cancel в состоянии
 # по умолчанию и сообщать, что эта команда работает внутри машины состояний
 @user_router.message(Command(commands="cancel"), StateFilter(default_state))
-async def process_cancel_command(message: Message, i18n: dict):
-    await message.answer(text=i18n.get("cancel_command"))
+async def process_cancel_command(message: Message, i18n: dict, state: FSMContext):
+    sent = await message.answer(text=i18n.get("cancel_command"))
+    await state.update_data(message_ids=[sent.message_id])
 
 
 # Этот хэндлер будет срабатывать на команду /cancel в любых состояниях,
 # кроме состояния по умолчанию и отключать машину состояний
 @user_router.message(Command(commands="cancel"), ~StateFilter(default_state))
 async def process_cancel_command_state(message:Message, state: FSMContext, i18n: dict):
-    sent = await message.answer(text=i18n.get("cancel_command_success"))
+    sent = await message.answer(
+        text=i18n.get("cancel_command_success"),
+        reply_markup=create_main_keyboard(i18n)
+    )
 
     # Сбрасываем состояние и очищаем данные, полученные внутри состояний
-    await state.update_data(name=None, phone=None, address=None, message_ids=[sent.message_id])
+    await state.update_data(name=None, phone=None, address=None)
+    # await state.update_data(name=None, phone=None, address=None, message_ids=[sent.message_id])
     await state.set_state()
 
 # Этот хэндлер будет срабатывать при нажатии кнопки корзина
@@ -84,12 +92,16 @@ async def process_button_cart(
     user_id = message.from_user.id
     cart_service = CartService(session)
     total = await cart_service.get_cart_total(user_id=user_id)
-    products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
     if total:
-        text = convert_total(total, i18n)
+        products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
+        # Перечисляем содержимое корзины
+        goods = create_cart_goods(products_in_cart, i18n)
+
+        # Отправляем итоговую сумму заказ с инлайн кнопками 'оформить заказ' и 'редактировать'
+        total = convert_total(total, i18n)
         sent = await message.answer(
-            text=text,
-            reply_markup=await create_keyboard_cart(i18n=i18n, products=products_in_cart)
+            text=goods + total,
+            reply_markup=await create_keyboard_cart(i18n)
         )
     else:
         sent = await message.answer(text=i18n.get("cart_empty"))
@@ -98,13 +110,29 @@ async def process_button_cart(
     logger.debug("Выходим из хэндлера корзины")
 
 
+# Инлайн кнопка редактировать заказ
+@user_router.callback_query(F.data == 'edit_order', StateFilter(default_state))
+async def process_button_edit_cart(
+        callback_query: CallbackQuery,
+        session: AsyncSession,
+        i18n: dict,
+):
+    cart_service = CartService(session)
+    products_in_cart = await cart_service.get_cart_items_with_info(user_id=callback_query.from_user.id)
+    kb = await create_keyboard_edit_cart(i18n, products_in_cart)
+
+    await callback_query.message.edit_text(
+        text=i18n.get('press_item_to_delete'),
+        reply_markup=kb,
+    )
+
+
 # Этот хэндлер будет срабатывать на нажатие инлайн кнопки удалить
 @user_router.callback_query(IsDelItemCallbackData(), StateFilter(default_state))
 async def process_del_press(
         callback: CallbackQuery,
         i18n: dict,
         session: AsyncSession,
-        state: FSMContext,
         product_id_to_delete: int
 ):
     logger.debug("Входим в хэндлер срабатывающий на нажатие инлайн кнопки удалить")
@@ -115,18 +143,38 @@ async def process_del_press(
         product_id=product_id_to_delete
     )
     total = await cart_service.get_cart_total(user_id=user_id)
-    products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
     if total:
-        text = convert_total(total, i18n)
-        sent = await callback.message.edit_text(
-            text=text,
-            reply_markup=await create_keyboard_cart(i18n=i18n, products=products_in_cart)
+        products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
+        kb = await create_keyboard_edit_cart(i18n, products_in_cart)
+        await callback.message.edit_reply_markup(
+            reply_markup=kb
         )
     else:
-        sent = await callback.message.edit_text(text=i18n.get("cart_empty"))
+        await callback.message.edit_text(text=i18n.get("cart_empty"))
 
-    await state.update_data(message_ids=[sent.message_id])
     logger.debug("Выходим из хэндлера срабатывающего на нажатие инлайн кнопки удалить")
+
+
+# Инлайн кнопка удалить, находясь в редактировании корзины
+@user_router.callback_query(F.data == 'back_to_cart', StateFilter(default_state))
+async def process_back_to_cart(
+        callback: CallbackQuery,
+        i18n: dict,
+        session: AsyncSession,
+):
+    user_id = callback.from_user.id
+    cart_service = CartService(session)
+    total = await cart_service.get_cart_total(user_id=user_id)
+    products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
+    # Перечисляем содержимое корзины
+    goods = create_cart_goods(products_in_cart, i18n)
+
+    # Отправляем итоговую сумму заказ с инлайн кнопками 'оформить заказ' и 'редактировать'
+    total = convert_total(total, i18n)
+    sent = await callback.message.edit_text(
+        text=goods + total,
+        reply_markup=await create_keyboard_cart(i18n)
+    )
 
 
 # Этот хэндлер будет срабатывать при нажатии кнопки категории
@@ -154,38 +202,43 @@ async def process_button_category(
 
 
 # Этот хэндлер будет срабатывать на нажатие кнопки оформить заказ
-@user_router.message(ButtonOrderFilter(), StateFilter(default_state))
+@user_router.callback_query(F.data == 'place_an_order', StateFilter(default_state))
 async def process_button_order(
-        message: Message,
+        callback: CallbackQuery,
+        bot: Bot,
         state: FSMContext,
         session: AsyncSession,
         i18n: dict
 ):
     logger.debug("Входим в хэндлер оформить заказ")
-    user_id = message.from_user.id
+    user_id = callback.from_user.id
     cart_service = CartService(session)
-    products_in_cart = await cart_service.get_cart_items_with_info(user_id=message.from_user.id)
+    products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
     result = await create_text_order(i18n=i18n, products=products_in_cart)
+    data = await state.get_data()
+    await delete_prev_messages(bot=bot, data=data, chat_id=callback.message.chat.id)
 
     if type(result) is not tuple:
-        sent = await message.answer(text=result)
+        sent = await callback.message.answer(text=result)
         await state.update_data(message_ids=[sent.message_id])
     else:
-        sent_1 = await message.answer(text=result[0])
-        sent_2 = await message.answer(text=result[1])
+        sent_1 = await callback.message.answer(text=result[0])
+        sent_2 = await callback.message.answer(text=result[1])
         # Проверяем, заполнены ли данные пользователя ранее
         user_service = UserService(session)
-        user_data = await user_service.get_user_name_phone_address(user_id=message.from_user.id)
-        print(user_data)
-        if user_data[0].get("name"):
-            text = await get_confirm_text_from_db(user_service, user_id, i18n)
-            sent_3 = await message.answer(text=text, reply_markup=create_keyboard_confirm(i18n))
+        user_details = await user_service.get_user_name_phone_address(user_id=user_id)
+        if user_details[0].get("name"):
+            check_str, details = get_confirm_text_from_db(user_details, i18n)
+            sent_3 = await callback.message.answer(text=check_str, reply_markup=ReplyKeyboardRemove())
+            sent_4 = await callback.message.answer(text=details, reply_markup=create_keyboard_confirm(i18n))
             await state.set_state(OrderForm.fill_correct)  # Устанавливаем состояние ожидания подтверждения
         else:
-            sent_3 = await message.answer(text=f"{i18n.get('write_name')}\n{i18n.get("cancel_write")}")
+            sent_3 = None
+            sent_4 = await callback.message.answer(text=f"{i18n.get('write_name')}\n{i18n.get("cancel_write")}")
             await state.set_state(OrderForm.fill_name) # Устанавливаем состояние ожидания ввода имени
 
-        await state.update_data(message_ids=[sent_1.message_id, sent_2.message_id, sent_3.message_id])
+        await state.update_data(message_ids=[sent_1.message_id, sent_2.message_id,
+                                             sent_3.message_id if sent_3 else None, sent_4.message_id])
     logger.debug("Выходим из хэндлера оформить заказ")
 
 
@@ -250,15 +303,7 @@ async def process_back__inline_press(
 
     # Удаляем предыдущее сообщение
     data = await state.get_data()
-    message_ids = data.get('message_ids', [])
-    for message_id in message_ids:
-        try:
-            await bot.delete_message(
-                chat_id=callback.message.chat.id,
-                message_id=message_id
-            )
-        except TelegramBadRequest:
-            pass
+    await delete_prev_messages(bot=bot, data=data, chat_id=callback.message.chat.id)
 
     product_service = ProductService(session)
     categories = await product_service.get_all_categories()
@@ -347,8 +392,13 @@ async def process_add_to_cart(
 @user_router.message(OrderForm.fill_name, IsCorrectNameMessage())
 async def process_name(message: Message, state: FSMContext, name, i18n: dict):
     await state.update_data(name=name)  # Временно сохраняем данные внутри контекста
-    sent = await message.answer(text=f"{i18n.get("write_phone")}\n{i18n.get("cancel_write")}")
-    await state.set_state(OrderForm.fill_phone)   # Устанавливаем состояние ожидания ввода телефона
+
+    phone_keyboard = create_phone_keyboard()
+    sent = await message.answer(
+        text=f"{i18n.get("write_phone")}\n{i18n.get("cancel_write")}",
+        reply_markup=phone_keyboard
+    )
+    await state.set_state(OrderForm.fill_phone) # Устанавливаем состояние ожидания ввода телефона
     await state.update_data(message_ids=[sent.message_id])
 
 
@@ -359,16 +409,35 @@ async def process_incorrect_name(message:Message, i18n: dict, state: FSMContext)
     await state.update_data(message_ids=[sent.message_id])
 
 
-# Хэндлер для ввода телефона
+# Обработка отправленного номера телефона
+@user_router.message(lambda message: message.contact)
+async def process_phone_from_keyboard(
+        message: Message,
+        i18n: dict,
+        state: FSMContext
+):
+    logger.debug("Входим в хэндлер обработки отправленного номера телефона")
+    contact: Contact = message.contact
+    phone_number = contact.phone_number
+    sent = await message.answer(text=i18n.get("write_address"))
+    await state.update_data(phone=phone_number, message_ids=[sent.message_id])
+    await state.set_state(OrderForm.fill_address) # Устанавливаем состояние ожидания ввода адреса
+    logger.debug("Выходим из хэндлера обработки отправленного номера телефона")
+
+
+# Хэндлер для ввода телефона вручную
 @user_router.message(OrderForm.fill_phone, IsCorrectNumberMessage())
 async def process_phone(message: Message, state: FSMContext, phone, i18n: dict):
     await state.update_data(phone=phone)    # Временно сохраняем данные внутри контекста
-    sent = await message.answer(i18n.get("write_address"))
+    sent = await message.answer(
+        text=i18n.get("write_address"),
+        reply_markup=create_main_keyboard(i18n)
+    )
     await state.set_state(OrderForm.fill_address) # Устанавливаем состояние ожидания ввода адреса
     await state.update_data(message_ids=[sent.message_id])
 
 
-# Хэндлер для ввода телефона (некорректное значение)
+# Хэндлер для ввода телефона вручную (некорректное значение)
 @user_router.message(OrderForm.fill_phone)
 async def process_incorrect_phone(message: Message, i18n: dict, state: FSMContext):
     sent = await message.answer(text=f"{i18n.get('write_correct_phone')}\n{i18n.get("cancel_write")}")
@@ -386,11 +455,13 @@ async def process_address(
     await state.update_data(address=address)    # Временно сохраняем данные внутри контекста
 
     data = await state.get_data()
-    text = get_confirm_text(data, i18n)
-    sent = await message.answer(text=text, reply_markup=create_keyboard_confirm(i18n))
+
+    check_str, details = get_confirm_text(data, i18n)
+    sent_1 = await message.answer(text=check_str, reply_markup=ReplyKeyboardRemove())
+    sent_2 = await message.answer(text=details, reply_markup=create_keyboard_confirm(i18n))
 
     await state.set_state(OrderForm.fill_correct) # Устанавливаем состояние ожидания подтверждения
-    await state.update_data(message_ids=[sent.message_id])
+    await state.update_data(message_ids=[sent_1.message_id, sent_2.message_id])
 
 
 # Этот хэндлер будет срабатывать при нажатии на инлайн кнопку correct
@@ -401,17 +472,8 @@ async def process_correct(
         state: FSMContext,
         i18n: dict
 ):
-    # Удаляем предыдущее сообщение
     data = await state.get_data()
-    message_ids = data.get('message_ids', [])
-    for message_id in message_ids:
-        try:
-            await bot.delete_message(
-                chat_id=callback.message.chat.id,
-                message_id=message_id
-            )
-        except TelegramBadRequest:
-            pass
+    await delete_prev_messages(bot=bot, data=data, chat_id=callback.message.chat.id)    # Удаляем предыдущее сообщение
     sent = await callback.message.answer(text=i18n.get('write_name'))
     await state.set_state(OrderForm.fill_name)  # Запускаем ожидание ввода имени
     await state.update_data(message_ids=[sent.message_id])
@@ -427,24 +489,12 @@ async def process_confirm(
         i18n: dict
 ):
     user_id = callback.from_user.id
-    # Удаляем предыдущие сообщения
     data = await state.get_data()
-    message_ids = data.get('message_ids', [])
-    for message_id in message_ids:
-        try:
-            await bot.delete_message(
-                chat_id=callback.message.chat.id,
-                message_id=message_id
-            )
-        except TelegramBadRequest:
-            pass
-
-    await callback.message.answer(text=i18n.get('thanks_for_order'))
-
-    # Проверяем, есть ли данные пользователя в БД, если нет - вносим
     user_service = UserService(session)
-    result = await user_service.get_user_name_phone_address(user_id=user_id)
-    if not result[0].get("name"):
+    await delete_prev_messages(bot=bot, data=data, chat_id=callback.message.chat.id)  # Удаляем предыдущее сообщение
+
+    # Вносим данные пользователя в БД
+    if all(data.get(detail) for detail in ('name', 'phone', 'address')):
         await user_service.write_user_name_phone_address(
             user_id=callback.message.chat.id,
             name=data.get("name"),
@@ -452,12 +502,33 @@ async def process_confirm(
             address=data.get("address"),
         )
 
+    user_details = await user_service.get_user_name_phone_address(user_id=user_id)
+    text = get_thanks_for_order_text(user_details, i18n)
+    await callback.message.answer(text=text, reply_markup=create_main_keyboard(i18n))
+
     # Очищаем корзину
     cart_service = CartService(session)
     await cart_service.clear_cart(user_id=user_id)
 
     # Сбрасываем форму заполнения данных
     await state.update_data(name=None, phone=None, address=None)
+    await state.set_state()
+
+
+# Нажатие инлайн кнопки назад во время проверки данных
+@user_router.callback_query(OrderForm.fill_correct, F.data == "back_from_confirm")
+async def process_back_from_confirm(
+        callback: CallbackQuery,
+        bot: Bot,
+        i18n: dict,
+        state: FSMContext,
+):
+    data = await state.get_data()
+    await delete_prev_messages(bot=bot, data=data, chat_id=callback.message.chat.id)  # Удаляем предыдущее сообщение
+    await callback.message.answer(
+        text=i18n.get('cancel_command_success'),
+        reply_markup=create_main_keyboard(i18n)
+    )
     await state.set_state()
 
 
@@ -472,14 +543,18 @@ async def process_unknown_command(
     logger.debug("Входим в хэндлер срабатывающий на любые сообщения в состоянии ожидания подтверждения")
     data = await state.get_data()
     if data.get("name"):
-        text = get_confirm_text(data, i18n)
-        sent = await message.answer(text=text, reply_markup=create_keyboard_confirm(i18n))
+        check_str, details = get_confirm_text(data, i18n)
+        sent_1 = await message.answer(text=check_str, reply_markup=ReplyKeyboardRemove())
+        sent_2 = await message.answer(text=details, reply_markup=create_keyboard_confirm(i18n))
     else:
         user_id = message.from_user.id
         user_service = UserService(session)
-        text = await get_confirm_text_from_db(user_service, user_id, i18n)
-        sent = await message.answer(text=text, reply_markup=create_keyboard_confirm(i18n))
-    await state.update_data(message_ids=[sent.message_id])
+        user_details = await user_service.get_user_name_phone_address(user_id=user_id)
+        check_str, details = get_confirm_text_from_db(user_details, i18n)
+        sent_1 = await message.answer(text=check_str, reply_markup=ReplyKeyboardRemove())
+        sent_2 = await message.answer(text=details, reply_markup=create_keyboard_confirm(i18n))
+
+    await state.update_data(message_ids=[sent_1.message_id, sent_2.message_id])
     logger.debug("Выходим из хэндлера срабатывающего на любые сообщения в состоянии ожидания подтверждения")
 
 

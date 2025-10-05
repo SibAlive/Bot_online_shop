@@ -57,14 +57,25 @@ async def create_keyboard_bottom(i18n: dict, text: str):
             [InlineKeyboardButton(text=i18n.get('prev'), callback_data='prev'),
              InlineKeyboardButton(text=i18n.get('next'), callback_data='next')],
             [InlineKeyboardButton(text=text, callback_data='add_to_cart')],
-            [InlineKeyboardButton(text=i18n.get('back_to_categories'), callback_data='back_to_categories')],
+            [InlineKeyboardButton(text=i18n.get('back'), callback_data='back_to_categories')],
         ]
     )
     return inline_keyboard_bottom
 
 
-# Функция, генерирующая инлайн кнопки для корзины
-async def create_keyboard_cart(i18n: dict, products: list[dict]) -> InlineKeyboardMarkup:
+async def create_keyboard_cart(i18n: dict) -> InlineKeyboardMarkup:
+    """# Функция, генерирующая инлайн кнопки корзины"""
+    inline_keyboard_cart = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [InlineKeyboardButton(text=i18n.get('edit_order'), callback_data='edit_order'),
+            InlineKeyboardButton(text=i18n.get('place_an_order'), callback_data='place_an_order')],
+        ]
+    )
+    return inline_keyboard_cart
+
+
+async def create_keyboard_edit_cart(i18n: dict, products: list[dict]) -> InlineKeyboardMarkup:
+    """Функция генерирует инлайн клавиатуру редактирования корзины"""
     kb_builder = InlineKeyboardBuilder()
     for product in products:
         kb_builder.row(
@@ -73,6 +84,12 @@ async def create_keyboard_cart(i18n: dict, products: list[dict]) -> InlineKeyboa
                 callback_data=f"{product.get('id')}_del"
             )
         )
+
+    # Добавляем в конец кнопку назад
+    kb_builder.row(
+        InlineKeyboardButton(text=i18n.get('back'), callback_data='back_to_cart')
+    )
+
     return kb_builder.as_markup()
 
 
@@ -81,7 +98,8 @@ def create_keyboard_confirm(i18n: dict):
     buttons = [
         [InlineKeyboardButton(text=i18n.get('correct'), callback_data='correct'),
          InlineKeyboardButton(text=i18n.get('confirm'), callback_data='confirm')
-         ]
+         ],
+        [InlineKeyboardButton(text=i18n.get('back'), callback_data='back_from_confirm')]
     ]
     inline_keyboard_confirm = InlineKeyboardMarkup(inline_keyboard=buttons)
     return inline_keyboard_confirm

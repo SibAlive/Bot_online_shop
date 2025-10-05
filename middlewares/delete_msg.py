@@ -19,13 +19,15 @@ class DeleteLastMessageMiddleware(BaseMiddleware):
 
         # Удаляем все предыдущие сообщения
         for message_id in message_ids:
-            try:
-                await data['bot'].delete_message(
-                    chat_id=event.chat.id,
-                    message_id=message_id
-                )
-            except TelegramBadRequest:
-                pass
+            if message_id:
+                try:
+                    await data['bot'].delete_message(
+                        chat_id=event.chat.id,
+                        message_id=message_id
+                    )
+                    logger.debug("Сообщение удалено")
+                except TelegramBadRequest:
+                    pass
 
         logger.debug(f"Выходим из миддлвари  {__class__.__name__}")
         return await handler(event, data)

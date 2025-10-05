@@ -1,4 +1,7 @@
 import logging
+
+from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.fsm.context import FSMContext
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -58,9 +61,17 @@ async def index_decrease(state: FSMContext, session: AsyncSession) -> tuple[int,
     return category_id, index
 
 
+# Функция формирует текст содержимого корзины
+def create_cart_goods(products: list[dict], i18n: dict):
+    text = '\n'.join(f"{product.get('name')} - {product.get('qnty')};" for product in products)
+    return text
+
+
 # Функция конвертирует общую сумму корзины
 def convert_total(total: int, i18n: dict) -> str:
-    return i18n.get("calculate_cart").format(total).replace(',', ' ')
+    # total = '\n'.join(f"{product.get('name')} - {product.get('qnty')};" for product in products)
+    total = '\n' + '\n' + i18n.get("calculate_cart").format(total).replace(',', ' ')
+    return total
 
 
 # Функция формирует текст сообщения, при нажатии на кнопку оформить заказ
@@ -79,28 +90,43 @@ async def create_text_order(i18n: dict, products: list[dict]) -> tuple | str:
     if text:
         result_1 = i18n.get("your_order_total").format(total).replace(',', ' ')
         result_2 = text
-        # result_3 = i18n.get('write_name')
         return result_1, result_2
 
     text = i18n.get("order_cart_empty")
     return text
 
 
-# Функция, формирующая текст подтверждения ввода данных
-def get_confirm_text(data: dict, i18n: dict) -> str:
+def get_confirm_text(data: dict, i18n: dict) -> tuple:
+    """Формирует текст подтверждения ввода данных"""
     name = data.get("name")
     phone = data.get("phone")
     address = data.get("address")
     result = i18n.get("confirm_text").format(name, phone, address)
-    return result
+
+    check_str, *details = result.split('\n')
+    details = '\n'.join(details)
+
+    return check_str, details
 
 
-async def get_confirm_text_from_db(user_service, user_id: int, i18n: dict) -> str:
-    user_data = await user_service.get_user_name_phone_address(user_id=user_id)
-    name = user_data[0].get("name")
-    phone = user_data[0].get("phone")
-    address = user_data[0].get("address")
+def get_confirm_text_from_db(user_details: list[dict], i18n: dict) -> tuple:
+    name = user_details[0].get("name")
+    phone = user_details[0].get("phone")
+    address = user_details[0].get("address")
     result = i18n.get("confirm_text").format(name, phone, address)
+
+    check_str, *details = result.split('\n')
+    details = '\n'.join(details)
+
+    return check_str, details
+
+
+def get_thanks_for_order_text(user_details: list[dict], i18n: dict) -> str:
+    """Формирует текст подтверждения заказа"""
+    name = user_details[0].get("name")
+    phone = user_details[0].get("phone")
+    address = user_details[0].get("address")
+    result = i18n.get("thanks_for_order").format(name, phone, address)
     return result
 
 
@@ -127,3 +153,15 @@ async def get_keyboard_bottom_text(
             qnty = item.quantity
     result += f" ({qnty})"
     return result
+
+
+async def delete_prev_messages(bot: Bot, data: dict, chat_id: int) -> None:
+    message_ids = data.get('message_ids', [])
+    for message_id in message_ids:
+        try:
+            await bot.delete_message(
+                chat_id=chat_id,
+                message_id=message_id
+            )
+        except TelegramBadRequest:
+            pass
