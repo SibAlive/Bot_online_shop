@@ -42,7 +42,6 @@ class UserService:
             f"role={role}, is_alive={is_alive}, banned={banned}"
         )
 
-
     async def get_user(self, *, user_id: int) -> tuple[Any, ...] | None:
         """Возвращает кортеж данных пользователя"""
         result = await self.session.execute(
@@ -61,6 +60,13 @@ class UserService:
         logger.info(f"Row is {row}")
         return row if row else None
 
+    async def get_users_list(self):
+        """Возвращает список пользователей"""
+        result = await self.session.execute(
+            select(User.user_id, User.username)
+        )
+        row = result.fetchall()
+        return row
 
     async def get_user_lang(self, *, user_id: int) -> str | None:
         """Возвращает язык пользователя"""
@@ -75,7 +81,6 @@ class UserService:
             logger.warning(f"No user with 'user_id' {user_id} found in the database")
             return None
 
-
     async def update_user_lang(
             self,
             *,
@@ -88,7 +93,6 @@ class UserService:
         )
         await self.session.commit()
         logger.info(f"The language {language} is set for the user {user_id}")
-
 
     async def change_user_alive_status(
             self,
@@ -103,8 +107,7 @@ class UserService:
         await self.session.commit()
         logger.info(f"Updated 'is_alive' status to {is_alive} for user {user_id}")
 
-
-    async def get_user_role(self, *, user_id: int,) -> UserRole | None:
+    async def get_user_role(self, *, user_id: int, ) -> UserRole | None:
         """Возвращает роль пользователя"""
         result = await self.session.execute(
             select(User.role).where(User.user_id == user_id)
@@ -112,13 +115,19 @@ class UserService:
         row = result.fetchone()
         if row:
             logger.info(f"The user with 'user_id'={user_id} has the role is {row[0]}")
-            return UserRole(row[0]) # Конвертируем в Enum
+            return UserRole(row[0])  # Конвертируем в Enum
         else:
             logger.warning(f"No user with 'user_id'={user_id} found in the database")
             return None
 
+    async def change_user_role(self, *, user_id: int, role: UserRole) -> None:
+        """Меняет роль пользователя"""
+        await self.session.execute(
+            update(User).where(User.user_id == user_id).values(role=role)
+        )
+        await self.session.commit()
 
-    async def get_user_alive_status(self, *, user_id: int,) -> bool | None:
+    async def get_user_alive_status(self, *, user_id: int, ) -> bool | None:
         """Возвращает 'alive' статус пользователя"""
         result = await self.session.execute(
             select(User.is_alive).where(User.user_id == user_id)
@@ -131,8 +140,7 @@ class UserService:
             logger.warning(f"No user with 'user_id'={user_id} found in the database")
             return None
 
-
-    async def get_user_banned_status_by_id(self, *, user_id: int,) -> bool | None:
+    async def get_user_banned_status_by_id(self, *, user_id: int, ) -> bool | None:
         """Возвращает статус бана пользователя по его id"""
         result = await self.session.execute(
             select(User.banned).where(User.user_id == user_id)
@@ -145,8 +153,7 @@ class UserService:
             logger.warning(f"No users with 'user_id={user_id} found in the database")
             return None
 
-
-    async def get_user_banned_status_by_username(self, *, username: str,) -> bool | None:
+    async def get_user_banned_status_by_username(self, *, username: str, ) -> bool | None:
         """Возвращает статус бана пользователя по его username"""
         result = await self.session.execute(
             select(User.banned).where(User.username == username)
@@ -159,15 +166,13 @@ class UserService:
             logger.warning(f"No users with 'username={username} found in the database")
             return None
 
-
-    async def change_user_banned_status_by_id(self, *, banned: bool, user_id: int,) -> None:
+    async def change_user_banned_status_by_id(self, *, banned: bool, user_id: int, ) -> None:
         """Меняет статус бана пользователя по его id"""
         await self.session.execute(
             update(User).where(User.user_id == user_id).values(banned=banned)
         )
         await self.session.commit()
         logger.info(f"Updated 'banned' status to {banned} for user {user_id}")
-
 
     async def change_user_banned_status_by_username(
             self,
@@ -181,7 +186,6 @@ class UserService:
         )
         await self.session.commit()
         logger.info(f"Updated 'banned' status to {banned} for username {username}")
-
 
     async def write_user_name_phone_address(
             self,
@@ -197,7 +201,6 @@ class UserService:
         )
         await self.session.commit()
         logger.info(f"Updated name {name}, phone {phone}, address {address} for user {user_id}")
-
 
     async def get_user_name_phone_address(self, *, user_id: int) -> list[dict]:
         """Проверяет, есть ли в БД имя, телефон и адрес пользователя"""
@@ -223,7 +226,6 @@ class ProductService:
             select(Category).where(Category.is_active == True)
         )
         return list(result.scalars().all())
-
 
     # === Товары ===
     async def get_products_by_category(self, category_id: int) -> list[Product]:
@@ -291,8 +293,8 @@ class CartService:
         )
         return [
             {"name": row[0], "id": row[1], "qnty": row[2], "price": row[3]}
-                for row in result.all()
-            ]
+            for row in result.all()
+        ]
 
     async def remove_from_cart(self, user_id: int, product_id: int) -> None:
         """Уменьшает количество товара в корзине (или удаляет товар, если количество = 0)"""
@@ -310,8 +312,8 @@ class CartService:
             await self.session.execute(
                 delete(CartItem).
                 where(CartItem.user_id == user_id,
-                    CartItem.product_id == product_id
-                )
+                      CartItem.product_id == product_id
+                      )
             )
         await self.session.commit()
 

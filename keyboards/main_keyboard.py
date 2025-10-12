@@ -21,7 +21,7 @@ def create_main_keyboard(i18n):
 
 def create_main_menu_commands(i18n: dict, role: UserRole):
 
-    if role == UserRole.USER:
+    if role in (UserRole.USER, UserRole.MODERATOR):
         return [
             BotCommand(
                 command="/start",
@@ -43,13 +43,25 @@ def create_main_menu_commands(i18n: dict, role: UserRole):
                 description=i18n.get("/lang_description")
             ),
             BotCommand(
+                command="/users",
+                description=i18n.get("/users_description")
+            ),
+            BotCommand(
                 command='/ban',
                 description=i18n.get('/ban_description')
             ),
             BotCommand(
                 command='/unban',
                 description=i18n.get('/unban_description')
-            )
+            ),
+            BotCommand(
+                command='/moder',
+                description=i18n.get('/moder_description')
+            ),
+            BotCommand(
+                command='/unmoder',
+                description=i18n.get('/unmoder_description')
+            ),
         ]
 
 
@@ -58,6 +70,6 @@ def create_phone_keyboard():
     phone_keyboard = ReplyKeyboardMarkup(
         keyboard=[[phone_button]],
         resize_keyboard=True,
-        one_time_keyboard=True # Клавиатура исчезнет после выбора
+        one_time_keyboard=True # Клавиатура исчезнет после нажатия
     )
     return phone_keyboard

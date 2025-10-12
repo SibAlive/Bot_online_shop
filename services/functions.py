@@ -165,3 +165,11 @@ async def delete_prev_messages(bot: Bot, data: dict, chat_id: int) -> None:
             )
         except TelegramBadRequest:
             pass
+
+
+def convert_list_users_to_str(lst_users: list[tuple]) -> str:
+    """Конвертирует список пользователей в строку"""
+    result = ""
+    for user in lst_users:
+        result += f"ID: {user[0]} - {user[1]}\n"
+    return result
