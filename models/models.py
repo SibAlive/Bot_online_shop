@@ -2,14 +2,13 @@ from sqlalchemy import (Column, BigInteger, String, Boolean, DateTime,
                         func, Integer, Numeric, ForeignKey,)
 from sqlalchemy.dialects.postgresql import ENUM
 from sqlalchemy.orm import relationship
-from flask_login import UserMixin
 
 from enums import UserRole
 from admin_panel import db
 
 
 # Модель пользователя
-class User(UserMixin, db.Model):
+class User(db.Model):
     __tablename__ = "users"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
