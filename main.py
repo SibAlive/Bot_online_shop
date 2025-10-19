@@ -12,7 +12,7 @@
 # from config import Config, load_config
 # from services import AsyncSessionLocal, engine
 # from lexicon.i18n import get_translations
-# from handlers import settings_router, admin_router, user_router, other_router, moderator_router
+# from handlers import router
 # from middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
 #                          DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
 #                          ThrottlingMiddleware)
@@ -64,7 +64,7 @@
 #
 #     # Регистрируем роутеры в диспетчере
 #     logger.info("Including routers...")
-#     dp.include_routers(settings_router, admin_router, moderator_router, user_router, other_router)
+#     dp.include_router(router)
 #
 #     # Регистрируем миддлвари
 #     logger.info("Including middlewares...")
@@ -115,7 +115,7 @@
 # from config import Config, load_config
 # from services import AsyncSessionLocal, engine
 # from lexicon.i18n import get_translations
-# from handlers import settings_router, admin_router, user_router, other_router
+# from handlers import router
 # from middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
 #                          DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
 #                          ThrottlingMiddleware)
@@ -231,7 +231,7 @@
 #
 #     # Регистрируем роутеры в диспетчере
 #     logger.info("Including routers...")
-#     dp.include_routers(settings_router, admin_router, user_router, other_router)
+#     dp.include_router(router)
 #
 #     # Регистрируем миддлвари
 #     logger.info("Including middlewares...")
@@ -329,7 +329,7 @@ from sqlalchemy import text
 from config import Config, load_config
 from services import AsyncSessionLocal, engine
 from lexicon.i18n import get_translations
-from handlers import settings_router, admin_router, moderator_router, user_router, other_router
+from handlers import router
 from middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
                          DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
                          ThrottlingMiddleware)
@@ -425,7 +425,7 @@ def create_app() -> web.Application:
 
     # Регистрируем роутеры в диспетчере
     logger.info("Including routers...")
-    dp.include_routers(settings_router, admin_router, moderator_router, user_router, other_router)
+    dp.include_router(router)
 
     # Регистрируем миддлвари
     logger.info("Including middlewares...")
