@@ -9,9 +9,9 @@ from .moderator import moderator_router
 
 router = Router()
 router.include_routers(
+settings_router,
     admin_router,
-    other_router,
-    settings_router,
+    moderator_router,
     user_router,
-    moderator_router
+    other_router
     )
