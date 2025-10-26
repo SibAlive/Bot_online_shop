@@ -173,3 +173,25 @@ def convert_list_users_to_str(lst_users: list[tuple]) -> str:
     for user in lst_users:
         result += f"ID: {user[0]} - {user[1]}\n"
     return result
+
+
+async def send_test_message_broadcast(*, bot, chat_id, file_type, file_id, caption=None):
+    """Функция отправляет тестовое сообщение с файлом админу"""
+    if file_type == "photo":
+        return await bot.send_photo(
+            chat_id=chat_id,
+            photo=file_id,
+            caption=caption
+        )
+    elif file_type == "video":
+        return await bot.send_video(
+            chat_id=chat_id,
+            video=file_id,
+            caption=caption
+        )
+    elif file_type == "document":
+        return await bot.send_document(
+            chat_id=chat_id,
+            document=file_id,
+            caption=caption
+        )

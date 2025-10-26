@@ -20,7 +20,6 @@ def create_main_keyboard(i18n):
 
 
 def create_main_menu_commands(i18n: dict, role: UserRole):
-
     if role in (UserRole.USER, UserRole.MODERATOR):
         return [
             BotCommand(
@@ -62,6 +61,10 @@ def create_main_menu_commands(i18n: dict, role: UserRole):
                 command='/unmoder',
                 description=i18n.get('/unmoder_description')
             ),
+            BotCommand(
+                command='/broadcast',
+                description=i18n.get('/broadcast_description')
+            )
         ]
 
 

@@ -22,6 +22,7 @@ To place an order, click '🛒 корзина.'""",
     "/unban_description": "Unban the user (requires user_id or username)",
     "/moder_description": "Grant moderator rights",
     "/unmoder_description": "Remove moderator rights",
+    "/broadcast_description": "Bulk mailing",
     "Unknown command": "I don't know this command.\nplease use the menu",
     "prev": "⬅️ previous",
     "next": "➡️ next",
@@ -76,5 +77,8 @@ To place an order, click '🛒 корзина.'""",
     "back": "↩️ Назад",
     "place_an_order": "✍🏻 Place an order",
     "edit_order": "edit order",
-    "press_item_to_delete": "Click on the item to remove it"
+    "press_item_to_delete": "Click on the item to remove it",
+    "broadcast": "What would you like to send?\n\nNote! This message will be sent only to you, "
+                 "then, after you confirm, it will be sent to all users!",
+
 }

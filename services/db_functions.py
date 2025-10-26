@@ -2,7 +2,7 @@ import logging
 from typing import Any
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete
+from sqlalchemy import select, update, delete, or_
 
 from enums import UserRole
 from models import User, Category, Product, CartItem
@@ -213,6 +213,21 @@ class UserService:
             {"name": row[0], "phone": row[1], "address": row[2]}
             for row in result.all()
         ]
+
+    async def get_users_list_for_broadcast(self):
+        """Возвращает список пользователей для рассылки"""
+        result = await self.session.execute(
+            select(User.user_id)
+            .where(
+                User.is_alive == True,
+                User.banned == False,
+                or_(User.role == UserRole.USER,
+                    User.role == UserRole.MODERATOR
+                )
+            )
+        )
+        row = result.fetchall()
+        return [user_telegram_id for (user_telegram_id,) in row]
 
 
 class ProductService:

@@ -1,5 +1,5 @@
 import os
-from flask import Flask
+from site_flask import Flask
 from flask_httpauth import HTTPBasicAuth
 from functools import wraps
 

@@ -1,5 +1,7 @@
 from .inline_keyboard import (create_keyboard_categories, create_keyboard_bottom,
                               create_keyboard_confirm, create_keyboard_cart,
-                              get_lang_settings_kb, create_keyboard_edit_cart)
+                              get_lang_settings_kb, create_keyboard_edit_cart,
+                              create_keyboard_broadcast, create_keyboard_affirm_broadcast,
+                              create_keyboard_broadcast_caption, create_keyboard_back_to_broadcast)
 from .main_keyboard import (create_main_keyboard, create_main_menu_commands,
                             create_phone_keyboard)
