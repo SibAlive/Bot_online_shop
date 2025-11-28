@@ -9,10 +9,10 @@
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
         <div class="container">
-            <a class="navbar-brand" href="{{ url_for('index') }}">Админка магазина</a>
+            <a class="navbar-brand" href="{{ url_for('admin.index') }}">Админка магазина</a>
             <div class="navbar-nav">
-                <a class="nav-link" href="{{ url_for('categories') }}">Категории</a>
-                <a class="nav-link" href="{{ url_for('products') }}">Товары</a>
+                <a class="nav-link" href="{{ url_for('admin.categories') }}">Категории</a>
+                <a class="nav-link" href="{{ url_for('admin.products') }}">Товары</a>
             </div>
         </div>
     </nav>

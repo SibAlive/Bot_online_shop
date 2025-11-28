@@ -4,7 +4,7 @@
 <h2>Товары</h2>
 
 <!-- Кнопка добавления товара -->
-<a href="{{ url_for('new_product') }}" class="btn btn-success mb-3">Добавить товар</a>
+<a href="{{ url_for('admin.new_product') }}" class="btn btn-success mb-3">Добавить товар</a>
 
 <!-- Форма фильтрации по категории -->
 <form method="GET" class="mb-4">
@@ -30,8 +30,18 @@
     <thead>
         <tr>
             <th>ID</th>
-            <th>Название</th>
-            <th>Цена</th>
+            <th><a href="{{ url_for('admin.products',
+                            sort_by='product_name',
+                            order='asc' if sort_by != 'product_name' or order == 'desc' else 'desc') }}">
+                Название⬆️⬇️
+            </a>
+            </th>
+            <th><a href="{{ url_for('admin.products',
+                            sort_by='price',
+                            order='asc' if sort_by != 'price' or order == 'desc' else 'desc') }}">
+                Цена⬆️⬇️
+            </a>
+            </th>
             <th>Категория</th>
             <th>Доступен</th>
             <th>Фото</th>
@@ -54,8 +64,8 @@
                 {% endif %}
             </td>
             <td>
-                <a href="{{ url_for('edit_product', id=prod.id) }}" class="btn btn-sm btn-outline-primary">Редактировать</a>
-                <form method="POST" action="{{ url_for('delete_product', id=prod.id) }}" style="display:inline;">
+                <a href="{{ url_for('admin.edit_product', id=prod.id) }}" class="btn btn-sm btn-outline-primary">Редактировать</a>
+                <form method="POST" action="{{ url_for('admin.delete_product', id=prod.id) }}" style="display:inline;">
                     <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Удалить?')">Удалить</button>
                 </form>
             </td>

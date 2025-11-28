@@ -1,6 +1,6 @@
 """Формы для редактирования"""
 from flask_wtf import FlaskForm
-from wtforms import (StringField, DecimalField, BooleanField, SelectField, SubmitField)
+from wtforms import StringField, DecimalField, BooleanField, SelectField, SubmitField
 from wtforms.validators import DataRequired, NumberRange
 
 

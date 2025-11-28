@@ -117,7 +117,7 @@ async def enter_caption_process(message, bot, state):
         reply_markup=kb.create_keyboard_affirm_broadcast()
     )
 
-    await state.set_state(BroadcastForm.caption)  # Устанавливаем состояние ожидания подтверждения отправки
+    await state.set_state(BroadcastForm.confirm)  # Устанавливаем состояние ожидания подтверждения отправки
     await state.update_data(message_id=media_msg.message_id,
                             chat_id=message.chat.id,
                             message_ids=[sent_1.message_id, sent_2.message_id])
