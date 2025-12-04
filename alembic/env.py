@@ -8,15 +8,14 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 # Импортируем db и модели
-from admin_panel.extensions import db
-from models.models import User, Category, Product, CartItem
+from web.extensions import db
 
 # Импортируем URL из connections.py
 try:
-    from services.connections import DATABASE_URL_FOR_FLASK
+    from bot.services import DATABASE_URL_FOR_ALEMBIC
 except ImportError as e:
     raise ImportError(
-        "Не удалось импортировать DATABASE_URL_FOR_FLASK из services.connections. "
+        "Не удалось импортировать DATABASE_URL_FOR_ALEMBIC из services.connections. "
         "Проверьте структуру проекта и наличие файла."
     ) from e
 
@@ -33,7 +32,7 @@ target_metadata = db.metadata
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
     context.configure(
-        url=DATABASE_URL_FOR_FLASK, # ← Берём URL из connections.py
+        url=DATABASE_URL_FOR_ALEMBIC, # ← Берём URL из connections.py
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -50,7 +49,7 @@ def run_migrations_online() -> None:
         config.get_section(config.config_ini_section) or {},
         prefix="sqlalchemy.",
         poolclass=pool.NullPool,
-        url=DATABASE_URL_FOR_FLASK,  # ← Ключевое изменение!
+        url=DATABASE_URL_FOR_ALEMBIC
     )
 
     with connectable.connect() as connection:

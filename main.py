@@ -10,12 +10,12 @@ from aiogram.fsm.storage.redis import RedisStorage
 from redis.asyncio import Redis
 
 from config import Config, load_config
-from services import AsyncSessionLocal, engine
-from lexicon.i18n import get_translations
-from handlers import router
-from middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
-                         DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
-                         ThrottlingMiddleware)
+from bot.services import AsyncSessionLocal, engine
+from bot.lexicon.i18n import get_translations
+from bot.handlers import router
+from bot.middlewares import (DataBaseMiddleware, ShadowBanMiddleware, UserRegistrationMiddleware,
+                             DeleteLastMessageMiddleware, TranslatorMiddleware, LangSettingsMiddleware,
+                             ThrottlingMiddleware)
 
 
 # Инициализируем логгер
@@ -45,12 +45,12 @@ async def main() -> None:
         )
     storage = RedisStorage(redis)
 
-    try:
-        # Отправляем команду PING
-        pong = await redis.ping()
-        logger.info(f"Connection successful! PONG: {pong}")
-    except Exception as e:
-        logger.info(f"Connection failed: {e}")
+    # try:
+    #     # Отправляем команду PING
+    #     pong = await redis.ping()
+    #     logger.info(f"Connection successful! PONG: {pong}")
+    # except Exception as e:
+    #     logger.info(f"Connection failed: {e}")
 
     # Инициализируем бот и диспетчер
     bot = Bot(
@@ -75,7 +75,7 @@ async def main() -> None:
     dp.update.middleware(TranslatorMiddleware())
     dp.message.middleware(UserRegistrationMiddleware())
     dp.message.middleware(DeleteLastMessageMiddleware())
-    dp.message.middleware(ThrottlingMiddleware(redis, limit=1, tm=1))
+    # dp.message.middleware(ThrottlingMiddleware(redis, limit=1, tm=1))
 
     # Запускаем polling
     try:
@@ -90,6 +90,8 @@ async def main() -> None:
     finally:
         # Закрываем движок
         await engine.dispose()
+        await bot.session.close()
+        # await redis.aclose()
         logger.info("Connection to PostgresSQL closed")
 
 
@@ -98,7 +100,10 @@ if sys.platform.startswith("win") or os.name == "nt":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        pass
 
 
 """Запуск бота через WebHoock на локальном сервере, с помощью Localtonnel"""
