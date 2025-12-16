@@ -84,7 +84,7 @@ async def process_button_cart(
     if total:
         products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
         # Перечисляем содержимое корзины
-        goods = ser.create_cart_goods(products_in_cart, i18n)
+        goods = ser.create_cart_goods(products_in_cart)
 
         # Отправляем итоговую сумму заказ с инлайн кнопками 'оформить заказ' и 'редактировать'
         total = ser.convert_total(total, i18n)
@@ -156,7 +156,7 @@ async def process_back_to_cart(
     total = await cart_service.get_cart_total(user_id=user_id)
     products_in_cart = await cart_service.get_cart_items_with_info(user_id=user_id)
     # Перечисляем содержимое корзины
-    goods = ser.create_cart_goods(products_in_cart, i18n)
+    goods = ser.create_cart_goods(products_in_cart)
 
     # Отправляем итоговую сумму заказ с инлайн кнопками 'оформить заказ' и 'редактировать'
     total = ser.convert_total(total, i18n)

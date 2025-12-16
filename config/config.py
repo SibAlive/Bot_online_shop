@@ -95,7 +95,7 @@ def load_config(path: str | None = None) -> Config:
     webhook = WebhookSettings(
         host=env.str("WEBHOOK_HOST", "0.0.0.0"),
         port=env.int("PORT", 8000),
-        base_url=env("WEBHOOK_BASE_URL"),
+        base_url=env("WEBHOOK_BASE_URL", ""),
         path=env.str("WEBHOOK_PATH", "/webhook"),
     )
 

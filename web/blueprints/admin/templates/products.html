@@ -53,7 +53,7 @@
         <tr>
             <td>{{ prod.id }}</td>
             <td>{{ prod.name }}</td>
-            <td>{{ prod.price }} сум</td>
+            <td>{{ prod.price }} руб.</td>
             <td>{{ prod.category.name if prod.category else '—' }}</td>
             <td>{% if prod.is_available %}✅{% else %}❌{% endif %}</td>
             <td>
