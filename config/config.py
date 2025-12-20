@@ -43,6 +43,7 @@ class WebhookSettings:
     port: int
     base_url: str
     path: str
+    secret: str
 
 
 @dataclass
@@ -97,6 +98,7 @@ def load_config(path: str | None = None) -> Config:
         port=env.int("PORT", 8000),
         base_url=env("WEBHOOK_BASE_URL", ""),
         path=env.str("WEBHOOK_PATH", "/webhook"),
+        secret=env.str("WEBHOOK_SECRET"),
     )
 
     logg_settings = LoggSettings(
