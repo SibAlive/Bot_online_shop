@@ -34,7 +34,7 @@ async def main() -> None:
     )
     # Выводи в консоль информацию о начале запуска бота
     logger.info("Starting bot...")
-    logger.info("Проверка автодеплоя!")
+    logger.info("Проверка автодеплоя!!!")
 
     # Инициализируем хранилище
     redis = Redis(
