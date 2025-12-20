@@ -13,6 +13,7 @@ jobs:
           host: ${{ secrets.HOST }}
           username: ${{ secrets.USERNAME }}
           key: ${{ secrets.SSH_KEY }}
+          port: ${{ secrets.SSH_PORT }}
           script: |
             cd ~/Bot_online_shop
             echo "🔍 Текущая версия:"
