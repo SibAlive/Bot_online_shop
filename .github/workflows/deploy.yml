@@ -1,3 +1,10 @@
+name: Deploy Bot_online_shop
+
+# ✅ Это самое важное — без этого GitHub не знает, когда запускать!
+on:
+  push:
+    branches: [ main ]
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -6,9 +13,9 @@ jobs:
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: sibalive.sytes.net
-          port: 2222                    # ← важен!
+          port: 2222
           username: sibalive
-          key: ${{ secrets.SSH_KEY }}   # ← имя вашего секрета
+          key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home/sibalive/Bot_online_shop
+            cd /home/sibalive/projects/Bot_online_shop
             ./deploy.sh
