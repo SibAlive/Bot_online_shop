@@ -1,0 +1,14 @@
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: sibalive.sytes.net
+          port: 2222                    # ← важен!
+          username: sibalive
+          key: ${{ secrets.SSH_KEY }}   # ← имя вашего секрета
+          script: |
+            cd /home/sibalive/Bot_online_shop
+            ./deploy.sh
