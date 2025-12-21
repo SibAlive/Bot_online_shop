@@ -17,5 +17,5 @@ jobs:
           username: sibalive
           key: ${{ secrets.SSH_KEY }}
           script: |
-            cd /home/sibalive/projects/Bot_online_shop
+            cd /home/sibalive/Bot_online_shop
             ./deploy.sh
