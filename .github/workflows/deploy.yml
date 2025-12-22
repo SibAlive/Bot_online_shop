@@ -1,6 +1,5 @@
 name: Deploy Bot_online_shop
 
-# ✅ Это самое важное — без этого GitHub не знает, когда запускать!
 on:
   push:
     branches: [ main ]
