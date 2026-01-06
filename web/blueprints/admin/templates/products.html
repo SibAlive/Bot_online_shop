@@ -32,13 +32,15 @@
             <th>ID</th>
             <th><a href="{{ url_for('admin.products',
                             sort_by='product_name',
-                            order='asc' if sort_by != 'product_name' or order == 'desc' else 'desc') }}">
+                            order='asc' if sort_by != 'product_name' or order == 'desc' else 'desc',
+                            category_id=selected_category_id) }}">
                 Название⬆️⬇️
             </a>
             </th>
             <th><a href="{{ url_for('admin.products',
                             sort_by='price',
-                            order='asc' if sort_by != 'price' or order == 'desc' else 'desc') }}">
+                            order='asc' if sort_by != 'price' or order == 'desc' else 'desc',
+                            category_id=selected_category_id) }}">
                 Цена⬆️⬇️
             </a>
             </th>

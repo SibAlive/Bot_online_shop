@@ -51,7 +51,7 @@ async def main() -> None:
         pong = await redis.ping()
         logger.info(f"Connection successful! PONG: {pong}")
     except Exception as e:
-        logger.info(f"Connection to Redis failed: {e}")
+        logger.error(f"Connection to Redis failed: {e}")
 
     # Инициализируем бот и диспетчер
     bot = Bot(

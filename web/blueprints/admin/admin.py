@@ -6,8 +6,7 @@ from functools import wraps
 from web.extensions import db
 from web.forms import CategoryForm, ProductForm
 from web.url_creator import ADMIN_USERNAME, ADMIN_PASSWORD
-from web.services import build_product_sort_column
-from bot.models import Category, Product
+from web.service import build_product_sort_column, CategoryService, ProductService
 
 
 admin = Blueprint(
@@ -54,16 +53,18 @@ def index():
 @admin.route('/categories', methods=['GET'])
 def categories():
     """Отображает все категории"""
-    categories_list = Category.query.all()
+    category_service = CategoryService(db)
+    categories_list = category_service.get_categories_list()
     return render_template('categories.html', categories=categories_list)
 
 
 @admin.route('/category/new', methods=['GET', 'POST'])
 def new_category():
+    category_service = CategoryService(db)
     form = CategoryForm()
     if form.validate_on_submit():
-        # Проверка уникальности наименования
-        if Category.query.filter_by(name=form.name.data).first():
+        # Проверяем уникальности наименования и создаем новую категорию
+        if not category_service.create_category(form=form):
             flash('Категория с таким именем уже существует!', 'danger')
             return render_template(
                 'category_form.html',
@@ -71,12 +72,6 @@ def new_category():
                 title="Новая категория"
             )
 
-        category = Category(
-            name=form.name.data,
-            is_active=form.is_active.data
-        )
-        db.session.add(category)
-        db.session.commit()
         flash('Категория создана!', 'success')
         return redirect(url_for('.categories'))
 
@@ -88,15 +83,12 @@ def new_category():
 
 @admin.route('/category/edit/<int:id>', methods=['GET', 'POST'])
 def edit_category(id):
-    category = Category.query.get_or_404(id)
+    category_service = CategoryService(db)
+    category = category_service.get_category_by_id(id=id)
     form = CategoryForm(obj=category)
     if form.validate_on_submit():
         # Проверка уникальности наименования (кроме текущего)
-        existing = Category.query.filter(
-            Category.name == form.name.data,
-            Category.id != id
-        ).first()
-        if existing:
+        if not category_service.edit_category(form=form, category=category, id=id):
             flash('Наименование уже используется другой категорией!', 'danger')
             return render_template(
                 'category_form.html',
@@ -104,9 +96,6 @@ def edit_category(id):
                 title="Редактировать категорию"
             )
 
-        category.name = form.name.data
-        category.is_active = form.is_active.data
-        db.session.commit()
         flash('Категория обновлена!', 'success')
         return redirect(url_for('.categories'))
 
@@ -118,14 +107,12 @@ def edit_category(id):
 
 @admin.route('/category/delete/<int:id>', methods=['POST'])
 def delete_category(id):
-    category = Category.query.get_or_404(id)
+    category_service = CategoryService(db)
     # Проверяем, есть ли товары в этой категории
-    if category.products:
+    if not category_service.delete_category(id=id):
         flash('Нельзя удалить категорию - в ней есть товары!', 'danger')
         return redirect(url_for('.categories'))
 
-    db.session.delete(category)
-    db.session.commit()
     flash('Категория удалена!', 'success')
     return redirect(url_for('.categories'))
 
@@ -133,22 +120,19 @@ def delete_category(id):
 """--- Товары ---"""
 @admin.route('/products', methods=['GET'])
 def products():
-    """Добавляем сортировку товаров по категориям"""
+    """Возвращает список товаров с сортировкой по категориям"""
     # Получаем ID категории из GET-параметра
     category_id = request.args.get('category_id', type=int)
+    product_service = ProductService(db)
+    category_service = CategoryService(db)
 
-    # Запрос товаров: фильтруем по категории, если category_id передан
-    query = Product.query
-    if category_id:
-        query = query.filter(Product.category_id == category_id)
-
-    # Сортируем
+    # Получаем значения для сортировки
     sort_column, sort_by, order = build_product_sort_column('product_name')
+    # Получаем список продуктов
+    products_list = product_service.get_products_list(category_id=category_id, sort_column=sort_column)
 
-    products_list = query.order_by(sort_column).all()
-
-    # Получаем все активные категории дл фильтра
-    categories_list = Category.query.filter_by(is_active=True).all()
+    # Получаем все активные категории для фильтра
+    categories_list = category_service.get_active_categories()
 
     return render_template(
         'products.html',
@@ -156,48 +140,27 @@ def products():
         categories=categories_list,
         selected_category_id=category_id,
         sort_by=sort_by,
-        order=order
+        order=order,
     )
 
 @admin.route('/product/new', methods=['GET', 'POST'])
 def new_product():
+    product_service = ProductService(db)
     form = ProductForm()
     if form.validate_on_submit():
-        photo_url = form.photo_url.data
-
-        category_id = form.category_id.data if form.category_id.data != 0 else None
-
-        product = Product(
-            name=form.name.data,
-            price=form.price.data,
-            photo_url=photo_url,
-            category_id=category_id,
-            is_available=form.is_available.data
-        )
-        db.session.add(product)
-        db.session.commit()
+        product_service.create_product(form=form)
         flash('Товар добавлен!', 'success')
         return redirect(url_for('.products'))
-
     return render_template('product_form.html', form=form, title="Новый товар")
 
 
 @admin.route('/product/edit/<int:id>', methods=['GET', 'POST'])
 def edit_product(id):
-    product = Product.query.get_or_404(id)
+    product_service = ProductService(db)
+    product = product_service.get_product_by_id(id=id)
     form = ProductForm(obj=product)
     if form.validate_on_submit():
-        photo_url = form.photo_url.data
-
-        category_id = form.category_id.data if form.category_id.data != 0 else None
-
-        product.name = form.name.data
-        product.price = form.price.data
-        product.photo_url = photo_url
-        product.category_id = category_id
-        product.is_available = form.is_available.data
-
-        db.session.commit()
+        product_service.edit_product(form=form, product=product)
         flash('Товар обновлён!', 'success')
         return redirect(url_for('.products'))
 
@@ -208,8 +171,7 @@ def edit_product(id):
 
 @admin.route('/product/delete/<int:id>', methods=['POST'])
 def delete_product(id):
-    product = Product.query.get_or_404(id)
-    db.session.delete(product)
-    db.session.commit()
+    product_service = ProductService(db)
+    product_service.delete_product(id=id)
     flash('Товар удалён!', 'success')
     return redirect(url_for('.products'))

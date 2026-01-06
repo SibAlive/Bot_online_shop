@@ -2,7 +2,7 @@ import logging
 from typing import Any
 from datetime import datetime, timezone
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, update, delete, or_
+from sqlalchemy import select, update, delete
 
 from bot.enums import UserRole
 from bot.models import User, Category, Product, CartItem
