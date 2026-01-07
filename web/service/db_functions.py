@@ -6,7 +6,7 @@ from bot.models import Category, Product
 
 logger = logging.getLogger(__name__)
 
-# Проверка
+
 class CategoryService:
     def __init__(self, db):
         self.db = db
